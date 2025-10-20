@@ -1,0 +1,371 @@
+.meeting-container {
+  display: flex;
+  height: 100vh;
+  background-color: #1d1d1d;
+  position: relative;
+}
+
+.video-area {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  transition: margin-right 0.3s ease;
+}
+
+.video-area.with-chat {
+  margin-right: 320px;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 1200px;
+  aspect-ratio: 16/9;
+}
+
+.video-tile {
+  position: relative;
+  background-color: #3c4043;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video-on {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0e71eb, #ff6900);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.participant-avatar {
+  width: 80px;
+  height: 80px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+}
+
+.video-off {
+  width: 100%;
+  height: 100%;
+  background-color: #3c4043;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video-off-icon {
+  font-size: 48px;
+  opacity: 0.5;
+  color: #ffffff;
+}
+
+.participant-info {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.host-badge {
+  color: #ff6900;
+  font-weight: bold;
+}
+
+.mute-icon {
+  color: #ff4444;
+}
+
+.chat-sidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 320px;
+  height: 100vh;
+  background-color: #ffffff;
+  border-left: 1px solid #e1e5e8;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e1e5e8;
+}
+
+.chat-header h3 {
+  margin: 0;
+  color: #1d1d1d;
+  font-size: 18px;
+}
+
+.close-chat {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #747487;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.chat-message {
+  margin-bottom: 16px;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.sender-name {
+  font-weight: 600;
+  color: #1d1d1d;
+  font-size: 14px;
+}
+
+.message-time {
+  color: #747487;
+  font-size: 12px;
+}
+
+.message-content {
+  color: #3c4043;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.chat-input {
+  display: flex;
+  padding: 16px;
+  border-top: 1px solid #e1e5e8;
+  gap: 8px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #e1e5e8;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.chat-input input:focus {
+  outline: none;
+  border-color: #0e71eb;
+}
+
+.chat-input button {
+  background-color: #0e71eb;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-input button:hover {
+  background-color: #0c63d4;
+}
+
+.control-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 16px;
+  background-color: rgba(60, 64, 67, 0.9);
+  padding: 16px 24px;
+  border-radius: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.control-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  background-color: #3c4043;
+  color: white;
+  transition: background-color 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.control-button:hover {
+  background-color: #5f6368;
+}
+
+.control-button.muted {
+  background-color: #ff4444;
+}
+
+.control-button.video-off {
+  background-color: #ff4444;
+}
+
+.control-button.leave-button {
+  background-color: #dc3545;
+  transform: rotate(135deg);
+}
+
+.control-button.leave-button:hover {
+  background-color: #c82333;
+}
+
+.meeting-info {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+/* プレビュー画面用のスタイル */
+.preview-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 40px 20px;
+  text-align: center;
+  width: 100%;
+  min-width: 320px;
+}
+
+.preview-header {
+  margin-bottom: 40px;
+}
+
+.preview-header h2 {
+  color: white;
+  font-size: 28px;
+  margin-bottom: 8px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+}
+
+.preview-header p {
+  color: #b3b3b3;
+  font-size: 16px;
+  margin: 0;
+}
+
+.preview-video-container {
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.preview-tile {
+  width: 480px;
+  height: 270px;
+  max-width: 80vw;
+  aspect-ratio: 16/9;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 32px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 400px;
+}
+
+.join-meeting-button {
+  background-color: #0e71eb;
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.join-meeting-button:hover {
+  background-color: #0c63d4;
+}
+
+.cancel-button {
+  background-color: transparent;
+  color: #b3b3b3;
+  border: 1px solid #5f6368;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.cancel-button:hover {
+  background-color: #3c4043;
+  color: white;
+}
+
+.preview-screen .meeting-info {
+  position: static;
+  margin-top: 0;
+  background-color: rgba(60, 64, 67, 0.7);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: white;
+  display: inline-block;
+}
