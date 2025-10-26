@@ -1,7 +1,21 @@
 import { Link } from 'react-router-dom';
 import './Signup.css';
+import { useState } from 'react';
+import { authRepository } from '../../modules/auth/auth.repository';
 
 function Signup() {
+  const [name,setName] = useState('')
+  const [email,setEmail] = useState('')
+  const [password,setPassword] = useState('')
+  
+  const signup = async() => {
+    if(!name || !email || !password) return
+
+    const {user,token} = await authRepository.signup(name,email,password)
+    console.log(user,token)
+    
+  }
+
   return (
     <div className='signup-container'>
       <div className='signup-card'>
@@ -11,18 +25,18 @@ function Signup() {
 
         <div className='signup-form'>
           <div className='input-group'>
-            <input type='text' placeholder='氏名' />
+            <input type='text' placeholder='氏名' value={name} onChange={(e) => setName(e.target.value)} />
           </div>
 
           <div className='input-group'>
-            <input type='email' placeholder='メールアドレス' />
+            <input type='email' placeholder='メールアドレス' value={email} onChange={(e) => setEmail(e.target.value)}/>
           </div>
 
           <div className='input-group'>
-            <input type='password' placeholder='パスワード' />
+            <input type='password' placeholder='パスワード' value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
-          <button type='button' className='signup-button'>
+          <button type='button' className='signup-button' disabled={!name || !email || !password} onClick={signup}>
             アカウント作成
           </button>
         </div>
@@ -38,3 +52,4 @@ function Signup() {
 }
 
 export default Signup;
+
