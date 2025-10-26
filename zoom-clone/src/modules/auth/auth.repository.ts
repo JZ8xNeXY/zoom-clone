@@ -23,4 +23,10 @@ export const authRepository = {
     const {user,token} = result.data
     return {user:new User(user),token}
   },
+
+  async getCurrentUser():Promise<User | undefined>{
+    const result = await api.get('auth/me')
+    if (!result.data) return undefined
+    return new User(result.data)
+  },
 }

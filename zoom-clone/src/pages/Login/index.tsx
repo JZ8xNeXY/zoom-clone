@@ -15,6 +15,7 @@ function Login() {
 
     const {user,token} = await authRepository.signIn(email,password)
     console.log(user,token)
+    localStorage.setItem('token',token)
     setCurrentUser(user)
   }
 

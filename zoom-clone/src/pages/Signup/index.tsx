@@ -16,6 +16,7 @@ function Signup() {
 
     const {user,token} = await authRepository.signup(name,email,password)
     console.log(user,token)
+    localStorage.setItem('token',token)
     setCurrentUser(user) 
   }
   
