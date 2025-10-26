@@ -1,8 +1,18 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiVideo, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
 import './Home.css';
+import { meetingRepository } from '../../modules/meetings/meeting.repository';
 
 function Home() {
+  const navigate = useNavigate()
+  const startMeeting = async() => {
+    try{
+      const result = await meetingRepository.createMeeting()
+      navigate(`/meetings/${result.meetingId}`)
+    }catch(error){
+      console.error(error)
+    }
+  }
   return (
     <div className='home-container'>
       <nav className='navbar'>
@@ -27,7 +37,7 @@ function Home() {
               <FiVideo />
             </div>
             <h3>新しいミーティング</h3>
-            <button className='start-meeting-button'>ミーティングを開始</button>
+            <button className='start-meeting-button' onClick={startMeeting}>ミーティングを開始</button>
           </div>
 
           <div className='meeting-card'>
