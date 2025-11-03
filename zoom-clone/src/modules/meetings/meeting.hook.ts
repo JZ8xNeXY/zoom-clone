@@ -9,7 +9,8 @@ export interface Participant {
   name:string,
   stream:MediaStream | null,
   cameraOn:boolean,
-  voiceOn:boolean
+  voiceOn:boolean,
+  isHost?:boolean,
 }
 
 //カスタムフック useMeeting
@@ -60,6 +61,13 @@ export const useMeeting = (meetingId:string) => {
       cameraOn = videoTracks[0]?.enabled
     }
     setMe((prev) => ({...prev,cameraOn}))
+    console.log('ビデオの変更')
+    socketRef.current?.emit('updated-participant',meetingId,{
+      id:me.id,
+      name:me.name,
+      voiceOn:me.voiceOn,
+      cameraOn,
+    })
   }
 
   const toggleVoice = () =>{
@@ -74,6 +82,14 @@ export const useMeeting = (meetingId:string) => {
     voiceOn = audioTracks[0]?.enabled
     }
     setMe((prev) => ({...prev,voiceOn}))
+    socketRef.current?.emit('update-participant',meetingId,{
+      id:me.id,
+      name:me.name,
+      voiceOn,
+      cameraOn:me.cameraOn,
+    },
+    )
+    console.log(voiceOn)
   }
 
   const join = async() => {
@@ -95,6 +111,21 @@ export const useMeeting = (meetingId:string) => {
     socket.on('existing-participants', (data) => {
       console.log('既存の参加者一覧', data)
       handleJoined(data, localStream)
+    })
+
+    socket.on('participant-updated',(data) => {
+      setParticipants((prev) => {
+        const newMap = new Map(prev)
+        newMap.set(data.participant.id, {
+          ...data.participant,
+          stream:prev.get(data.participant.id)?.stream
+        })
+        return newMap
+      })
+    })
+
+    socket.on('updated-participant', (meetingId, data) => {
+      console.log('受信:', meetingId, data)
     })
 
     //Socketサーバーからクライアントに接続
@@ -131,19 +162,25 @@ export const useMeeting = (meetingId:string) => {
     const handleJoined = (data:any,localStream:MediaStream) => {
      if (peerRef.current == null) return
      data.participants.forEach((participant:any) => {
-      //相手のpeerIDに自分の映像を送る
-      const call = peerRef.current!.call(participant.id,localStream)
-      console.log(participants)
-      call.on('stream',(remoteStream) => {
-        setParticipants((prev) => {
-          const newMap = new Map(prev)
-          newMap.set(participant.id,{
-            ...participant,
-            stream:remoteStream,
+      if(participant.id != me.id){
+        //相手のpeerIDに自分の映像を送る
+        const call = peerRef.current!.call(participant.id,localStream)
+        call.on('stream',(remoteStream) => {
+          setParticipants((prev) => {
+            const newMap = new Map(prev)
+            newMap.set(participant.id,{
+              ...participant,
+              stream:remoteStream,
+            })
+            return newMap
           })
-          return newMap
         })
-      })
+      }else{
+        setMe((prev) => ({
+          ...prev,
+          isHost:participant.isHost
+        }))
+      }
      })
     }
   }

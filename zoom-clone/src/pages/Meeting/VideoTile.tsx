@@ -21,7 +21,7 @@ export function VideoTile({participant}:VideoTileProps) {
       
       <div className='participant-info'>
         <span className='participant-name'>{participant.name}</span>
-        <span className='host-badge'>ホスト</span>
+        {participant.isHost && <span className='host-badge'>ホスト</span>}
         {!participant.voiceOn && (
         <span className='mute-icon'>
           <FiVolumeX />
