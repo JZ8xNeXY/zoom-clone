@@ -13,7 +13,7 @@ function Meeting() {
 
   const [showPreview,setShowPreview] = useState(true)
   //カスタムフック
-  const {me,getStream,toggleVideo,toggleVoice} = useMeeting()
+  const {me,getStream,toggleVideo,toggleVoice,join} = useMeeting(id!)
 
   const navigate = useNavigate()
 
@@ -36,6 +36,7 @@ function Meeting() {
   }
 
   const joinMeeting = async () =>{
+    await join()
     setShowPreview(false)
   }
 

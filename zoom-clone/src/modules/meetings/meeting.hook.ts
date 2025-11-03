@@ -1,6 +1,8 @@
 import { useAtom } from "jotai"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { currentUserAtom } from "../auth/current-user.state"
+import io, { Socket } from "socket.io-client"
+import Peer from "peerjs"
 
 export interface Participant {
   id:string,
@@ -9,8 +11,9 @@ export interface Participant {
   cameraOn:boolean,
   voiceOn:boolean
 }
+
 //カスタムフック useMeeting
-export const useMeeting = () => {
+export const useMeeting = (meetingId:string) => {
   const [localStream,setLocalStream] = useState<MediaStream[]>([])
   const currentUser = useAtom(currentUserAtom)
   const [me,setMe] = useState<Participant>({
@@ -20,6 +23,9 @@ export const useMeeting = () => {
     cameraOn:true,
     voiceOn:true
   })
+
+  const socketRef = useRef<Socket | null>(null)
+  const peerRef = useRef<Peer | null>(null)
 
   useEffect(() =>{
     setMe((prev) => ({...prev,stream:localStream[0]})) //streamだけ更新
@@ -62,9 +68,63 @@ export const useMeeting = () => {
     setMe((prev) => ({...prev,voiceOn}))
   }
 
+  const join = async() => {
+    const localStream = me.stream
+    if(localStream == null || currentUser == null) return
+    //クライアントがSocketサーバに接続する
+    socketRef.current = io(import.meta.env.VITE_API_URL)//socket接続を確立
+    const socket = socketRef.current
+    //Socketサーバーからクライアントに接続が確立したらハンドラーを呼び出す
+    socket.on('connect',() => {
+      handleSocketConnected(localStream)
+    })
+    //新しい参加者がミーティングに入ったときに、その情報を受け取って、全クライアントに通知
+    socket.on('participant-joined',(data) => {
+      handleJoined(data,localStream)
+    })
+
+    //Socketサーバーからクライアントに接続
+    const handleSocketConnected = (localStream:MediaStream) => {
+      const socket = socketRef.current
+      if(socket == null) return
+
+      //PeerJSサーバーに接続して自分のIDを発行
+      peerRef.current = new Peer(me.id,{
+        host: '0.peerjs.com',
+        port: 443,
+        secure: true,
+      })
+
+      const peer = peerRef.current
+     //Peer接続が開いたら（自分の通話番号が確定）
+      peer.on('open',() => {
+        //クライアントがSocketサーバーにミーティングに参加することを通知
+        socket.emit('join-meeting',meetingId,{
+          id:me.id,
+          name:me.name,
+          cameraOn:me.cameraOn,
+          voiceOn:me.voiceOn
+        })    
+      })
+      //もし誰かから電話が来たら自分の映像を返して応答する
+      peer.on('call',(mediaConn) => {
+        mediaConn.answer(localStream)
+      })
+    }
+
+    //新しい参加者がミーティングに入ったときに、その情報を受け取って、Peer通話をかける
+    const handleJoined = (data:any,localStream:MediaStream) => {
+     if (peerRef.current == null) return
+     data.participants.forEach((participant:any) => {
+      //相手のpeerIDに自分の映像を送る
+      const call = peerRef.current!.call(participant.id,localStream)
+     })
+    }
+  }
+
 
 
   
 
-  return {me,getStream,toggleVideo,toggleVoice}
+  return {me,getStream,toggleVideo,toggleVoice,join}
 }
