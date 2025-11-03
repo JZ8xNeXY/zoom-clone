@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from "react"
 import { currentUserAtom } from "../auth/current-user.state"
 import io, { Socket } from "socket.io-client"
 import Peer from "peerjs"
+import { useNavigate } from "react-router-dom"
+import { useFlashMessage } from "../ui/ui.state"
 
 export interface Participant {
   id:string,
@@ -34,6 +36,9 @@ export const useMeeting = (meetingId:string) => {
   const [participants,setParticipants] = useState<Map<string,Participant>>(
     new Map()
   )
+
+  const navigate = useNavigate()
+  const {addMessage} = useFlashMessage()
 
   useEffect(() =>{
     setMe((prev) => ({...prev,stream:localStream[0]})) //streamだけ更新
@@ -98,35 +103,6 @@ export const useMeeting = (meetingId:string) => {
     //クライアントがSocketサーバに接続する
     socketRef.current = io(import.meta.env.VITE_API_URL)//socket接続を確立
     const socket = socketRef.current
-    //Socketサーバーからクライアントに接続が確立したらハンドラーを呼び出す
-    socket.on('connect',() => {
-      handleSocketConnected(localStream)
-    })
-    //新しい参加者がミーティングに入ったときに、その情報を受け取って、全クライアントに通知
-    socket.on('participant-joined',(data) => {
-      console.log('参加者が追加されました', data)
-      handleJoined(data,localStream)
-    })
-
-    socket.on('existing-participants', (data) => {
-      console.log('既存の参加者一覧', data)
-      handleJoined(data, localStream)
-    })
-
-    socket.on('participant-updated',(data) => {
-      setParticipants((prev) => {
-        const newMap = new Map(prev)
-        newMap.set(data.participant.id, {
-          ...data.participant,
-          stream:prev.get(data.participant.id)?.stream
-        })
-        return newMap
-      })
-    })
-
-    socket.on('updated-participant', (meetingId, data) => {
-      console.log('受信:', meetingId, data)
-    })
 
     //Socketサーバーからクライアントに接続
     const handleSocketConnected = (localStream:MediaStream) => {
@@ -183,11 +159,69 @@ export const useMeeting = (meetingId:string) => {
       }
      })
     }
+    
+    //Socketサーバーからクライアントに接続が確立したらハンドラーを呼び出す
+    socket.on('connect',() => {
+      handleSocketConnected(localStream)
+    })
+    //新しい参加者がミーティングに入ったときに、その情報を受け取って、全クライアントに通知
+    socket.on('participant-joined',(data) => {
+      console.log('参加者が追加されました', data)
+      handleJoined(data,localStream)
+    })
+
+    socket.on('existing-participants', (data) => {
+      console.log('既存の参加者一覧', data)
+      handleJoined(data, localStream)
+    })
+
+    socket.on('participant-updated',(data) => {
+      setParticipants((prev) => {
+        const newMap = new Map(prev)
+        newMap.set(data.participant.id, {
+          ...data.participant,
+          stream:prev.get(data.participant.id)?.stream
+        })
+        return newMap
+      })
+    })
+
+    socket.on('updated-participant', (meetingId, data) => {
+      console.log('受信:', meetingId, data)
+    })
+
+    socket.on('participant-left',(data) => {
+      setParticipants((prev) => {
+        const newMap = new Map(prev)
+        newMap.delete(data.leftParticipantId)
+        return newMap
+      })
+    })
+
+    socket.on('close',() =>{
+      clear()
+      addMessage({message:'ミーティングが終了しました',type:'success'})
+      navigate('/')
+    })
+  }
+
+  const clear = () =>{
+    socketRef.current?.emit('leave-meeting',meetingId,me.id)
+
+    localStream.forEach((stream) =>{
+      stream.getTracks().forEach((track) => track.stop())
+    })
+
+    setLocalStream([])
+
+    peerRef.current?.destroy()
+    socketRef.current?.disconnect()
+
   }
 
 
 
   
 
-  return {me,getStream,toggleVideo,toggleVoice,join,participants}
+  return {me,getStream,toggleVideo,toggleVoice,join,participants,clear}
 }

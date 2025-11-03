@@ -14,7 +14,7 @@ function Meeting() {
 
   const [showPreview,setShowPreview] = useState(true)
   //カスタムフック
-  const {me,getStream,toggleVideo,toggleVoice,join,participants} = useMeeting(id!)
+  const {me,getStream,toggleVideo,toggleVoice,join,participants,clear} = useMeeting(id!)
 
   const navigate = useNavigate()
 
@@ -24,6 +24,9 @@ function Meeting() {
 
   useEffect(() => {
     initialize()
+    return () => {
+      clear()
+    }
   },[])
 
   const initialize = async() => {
@@ -44,6 +47,8 @@ function Meeting() {
   }
 
   const leaveMeeting = async () => {
+    clear()
+    console.log('退出')
     navigate('/')
   }
 
@@ -103,7 +108,7 @@ function Meeting() {
           <FiCopy />
         </button>
 
-        <button className='control-button leave-button'>
+        <button className='control-button leave-button' onClick={leaveMeeting}>
           <FiPhone />
         </button>
       </div>
