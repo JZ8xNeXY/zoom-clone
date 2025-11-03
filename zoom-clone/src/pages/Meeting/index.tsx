@@ -13,7 +13,7 @@ function Meeting() {
 
   const [showPreview,setShowPreview] = useState(true)
   //カスタムフック
-  const {me,getStream,toggleVideo,toggleVoice,join} = useMeeting(id!)
+  const {me,getStream,toggleVideo,toggleVoice,join,participants} = useMeeting(id!)
 
   const navigate = useNavigate()
 
@@ -59,8 +59,13 @@ function Meeting() {
     <div className='meeting-container'>
       <div className='video-area'>
         <div className='video-grid'>
-          <VideoTile participant={me}/>
-          <VideoTile participant={me}/>
+          <VideoTile participant={{
+            ...me,
+            name:me.name + '(あなた)'
+          }}/>
+          {Array.from(participants.values()).map((participant) => (
+              <VideoTile key={participant.id} participant={participant} />
+          ))}
         </div>
       </div>
 

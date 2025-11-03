@@ -15,7 +15,8 @@ export interface Participant {
 //カスタムフック useMeeting
 export const useMeeting = (meetingId:string) => {
   const [localStream,setLocalStream] = useState<MediaStream[]>([])
-  const currentUser = useAtom(currentUserAtom)
+  const [currentUser] = useAtom(currentUserAtom)
+  
   const [me,setMe] = useState<Participant>({
     id:currentUser!.id,
     name:currentUser!.name,
@@ -24,11 +25,18 @@ export const useMeeting = (meetingId:string) => {
     voiceOn:true
   })
 
+
+
   const socketRef = useRef<Socket | null>(null)
   const peerRef = useRef<Peer | null>(null)
 
+  const [participants,setParticipants] = useState<Map<string,Participant>>(
+    new Map()
+  )
+
   useEffect(() =>{
     setMe((prev) => ({...prev,stream:localStream[0]})) //streamだけ更新
+    console.log(me)
   },[localStream])
 
   const getStream = async() =>{
@@ -80,7 +88,13 @@ export const useMeeting = (meetingId:string) => {
     })
     //新しい参加者がミーティングに入ったときに、その情報を受け取って、全クライアントに通知
     socket.on('participant-joined',(data) => {
+      console.log('参加者が追加されました', data)
       handleJoined(data,localStream)
+    })
+
+    socket.on('existing-participants', (data) => {
+      console.log('既存の参加者一覧', data)
+      handleJoined(data, localStream)
     })
 
     //Socketサーバーからクライアントに接続
@@ -108,6 +122,7 @@ export const useMeeting = (meetingId:string) => {
       })
       //もし誰かから電話が来たら自分の映像を返して応答する
       peer.on('call',(mediaConn) => {
+        console.log('相手')
         mediaConn.answer(localStream)
       })
     }
@@ -118,6 +133,17 @@ export const useMeeting = (meetingId:string) => {
      data.participants.forEach((participant:any) => {
       //相手のpeerIDに自分の映像を送る
       const call = peerRef.current!.call(participant.id,localStream)
+      console.log(participants)
+      call.on('stream',(remoteStream) => {
+        setParticipants((prev) => {
+          const newMap = new Map(prev)
+          newMap.set(participant.id,{
+            ...participant,
+            stream:remoteStream,
+          })
+          return newMap
+        })
+      })
      })
     }
   }
@@ -126,5 +152,5 @@ export const useMeeting = (meetingId:string) => {
 
   
 
-  return {me,getStream,toggleVideo,toggleVoice,join}
+  return {me,getStream,toggleVideo,toggleVoice,join,participants}
 }
